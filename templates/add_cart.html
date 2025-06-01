@@ -1,0 +1,127 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Add to Cart</title>
+  <link rel="icon" href="{% static 'images\WhatsApp Image 2025-05-31 at 12.18.01(1).jpeg' %}" type="image/x-icon" />
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background : url("{% static '\images\WhatsApp Image 2025-05-31 at 12.18.01.jpeg' %}") no-repeat center center/cover;
+      color: white;
+      min-height: 100vh;
+    }
+        .container {
+      max-width: 1000px;
+      margin: auto;
+      padding: 40px 20px;
+      background: rgba(240, 233, 233, 0.95);
+      border-radius: 10px;
+      box-shadow: 0 0 15px rgba(0,0,0,0.3);
+      margin-top: 50px;
+    }
+    .navbar {
+      {% comment %} background-color: rgba(0, 0, 0, 0.7);
+      padding: 1rem 2rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center; {% endcomment %}
+    }
+    .navbar a {color: white;
+      text-decoration: none;
+      margin: 0 1rem;
+      font-weight: bold;}
+      
+
+    h2 {
+      text-align: center;
+      color: #2c3e50;
+      margin-bottom: 30px;}
+    .book-box {
+      border: 1px solid #ccc;
+      background: white;
+      padding: 15px;
+      margin-bottom: 10px;
+      border-radius: 8px;
+    }
+    p{text-align: center;
+      color: #2c3e50;
+      margin-bottom: 30px;}
+    button {
+      padding: 8px 12px;
+      margin-top: 10px;
+      background: #007bff;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+    button:hover {
+      background: #0056b3;
+    }
+  </style>
+</head>
+<body>
+<img src="{{ book.cover_image.url }}" />
+  <div class="navbar">
+    <div><a href="{% url 'home' %}">Home</a></div>
+  <div class="container">
+<h2>📚 Add to Cart</h2>
+<div id="books-container"></div>
+{% for book in books %}
+  <div class="book">
+    <h3>{{ book.title }}</h3>
+    <p>Author: {{ book.author }}</p>
+    <p>Price: ₹{{ book.rent_price }}</p>
+    {% if book.cover_image %}
+      <img src="{{ book.cover_image.url }}" alt="{{ book.title }}" width="100">
+    {% endif %}
+    <button onclick="addToCart({{ book.id }})">Add to Cart</button>  <!-- ✅ New Button -->
+  </div>
+{% empty %}
+  <p>No books available right now.</p>
+{% endfor %}
+</div>
+
+<script>
+  const token = localStorage.getItem('token'); // assumes you're storing auth token
+
+  function loadBooks() {
+    fetch('/api/browse-books/')
+      .then(res => res.json())
+      .then(data => {
+        const container = document.getElementById('books-container');
+        container.innerHTML = '';
+        data.forEach(book => {
+          const div = document.createElement('div');
+          div.className = 'book-box';
+          div.innerHTML = `
+            <strong>${book.title}</strong><br>
+            Author: ${book.author}<br>
+            Price: ₹${book.rent_price}<br>
+            <button onclick="addToCart(${book.id})">Add to Cart</button>
+          `;
+          container.appendChild(div);
+        });
+      });
+  }
+
+  function addToCart(bookId) {
+    fetch('/api/add-to-cart/', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Token ${token}`
+      },
+      body: JSON.stringify({ book_id: bookId })
+    })
+    .then(res => res.json())
+    .then(data => alert(data.message || data.error));
+  }
+
+  loadBooks();
+</script>
+
+</body>
+</html>

@@ -1,0 +1,133 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Register - Library System</title>
+  <link rel="icon" href="{% static 'images\WhatsApp Image 2025-05-31 at 12.18.01(1).jpeg' %}" type="image/x-icon" />
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: url("{% static 'images/WhatsApp Image 2025-05-31 at 12.18.01(1).jpeg' %}") no-repeat center center/cover;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+    }
+    
+    
+    .register-box {
+      background: white;
+      padding: 40px;
+      border-radius: 10px;
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+      width: 350px;
+      text-align: center;
+    }
+    .register-box img {
+      width: 80px;
+      margin-bottom: 20px;
+    }
+    .form-group {
+      margin-bottom: 20px;
+      text-align: left;
+    }
+    .form-group label {
+      display: block;
+      margin-bottom: 6px;
+      color: #333;
+      font-weight: bold;
+    }
+    .form-group input {
+      width: 100%;
+      padding: 10px;
+      border-radius: 6px;
+      border: 1px solid #ddd;
+      font-size: 14px;
+      box-sizing: border-box;
+    }
+    .btn-register {
+      width: 100%;
+      padding: 12px;
+      background-color: #1877f2;
+      border: none;
+      border-radius: 6px;
+      color: white;
+      font-size: 16px;
+      cursor: pointer;
+    }
+    .btn-register:hover {
+      background-color: #155bb5;
+    }
+    .message {
+      margin-top: 15px;
+      font-size: 14px;
+      color: red;
+    }
+    .message.success {
+      color: green;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="register-box">
+    <img src="{% static 'images/WhatsApp Image 2025-05-31 at 12.18.01.jpeg' %}" alt="Library Logo" class="logo">
+
+    <h2>Create New Account</h2>
+    <form id="register-form">
+      <div class="form-group">
+        <label for="username">Username</label>
+        <input type="text" id="username" name="username" required />
+      </div>
+
+      <div class="form-group">
+        <label for="password">Password</label>
+        <input type="password" id="password" name="password" required />
+      </div>
+
+      <button type="submit" class="btn-register">Register</button>
+    </form>
+    
+    <div id="response" class="message"></div>
+  </div>
+
+  <script>
+    document.getElementById('register-form').addEventListener('submit', async function(e) {
+        e.preventDefault();
+
+        const username = document.getElementById('username').value;
+        const password = document.getElementById('password').value;
+
+        try {
+            const response = await fetch('/api/register/', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                    
+                },
+                body: JSON.stringify({ username, password })
+            });
+
+            const data = await response.json();
+
+            if (response.ok) {
+                document.getElementById('response').style.color = "green";
+                document.getElementById('response').innerText = "Registration successful." ;
+                 // Wait a moment and redirect
+            setTimeout(() => {
+                window.location.href = '/login/';  // ← Replace with your actual login page URL
+            }, 1000); // 1.5 seconds delay for user feedback
+            } else {
+                document.getElementById('response').style.color = "red";
+                document.getElementById('response').innerText = data.error || "User already exist.";
+            }
+        } catch (err) {
+            document.getElementById('response').innerText = "Error connecting to server.";
+        }
+    });
+    </script>
+</body>
+</html>

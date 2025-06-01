@@ -1,0 +1,214 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Browse Books</title>
+<link rel="icon" href="{% static 'images\WhatsApp Image 2025-05-31 at 12.18.01(1).jpeg' %}" type="image/x-icon" />
+  <style>
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: url("{% static 'images\WhatsApp Image 2025-05-31 at 12.18.01.jpeg' %}") no-repeat center center/cover;
+      color: #333;
+      margin: 0;
+      padding: 0;
+      min-height: 100vh;
+    }
+
+    .container {
+      max-width: 1000px;
+      margin: auto;
+      padding: 40px 20px;
+      background: rgba(255, 255, 255, 0.95);
+      border-radius: 10px;
+      box-shadow: 0 0 15px rgba(0,0,0,0.3);
+      margin-top: 50px;
+    }
+
+    h2 {
+      text-align: center;
+      color: #2c3e50;
+      margin-bottom: 30px;
+    }
+    .container a{
+      
+      color: black;
+      text-decoration: none;
+      font-weight: bold;
+    }
+
+    .navbar {
+      {% comment %} background-color: rgba(0, 0, 0, 0.7);
+      padding: 1rem 2rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center; {% endcomment %}
+    }
+    .navbar a {color: white;
+      text-decoration: none;
+      margin: 0 1rem;
+      font-weight: bold;}
+
+      
+    
+    .filter {
+      text-align: right;
+      margin-bottom: 20px;
+    }
+
+    .filter select {
+      padding: 8px 12px;
+      border-radius: 5px;
+      border: 1px solid #aaa;
+    }
+
+    .book {
+      display: flex;
+      align-items: center;
+      background: #f8f9fa;
+      border-radius: 10px;
+      padding: 15px;
+      margin-bottom: 15px;
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+      transition: transform 0.2s ease;
+    }
+
+    .book:hover {
+      transform: scale(1.01);
+    }
+
+    .book img {
+      height: 100px;
+      width: 80px;
+      object-fit: cover;
+      border-radius: 5px;
+      margin-right: 20px;
+      border: 1px solid #ccc;
+    }
+
+    .book-info {
+      flex: 1;
+    }
+
+    .book-title {
+      font-size: 18px;
+      font-weight: bold;
+    }
+
+    .book-meta {
+      font-size: 14px;
+      color: #555;
+      margin-top: 5px;
+    }
+
+    .error {
+      text-align: center;
+      color: red;
+    }
+
+    .no-books {
+      text-align: center;
+      font-weight: bold;
+      color: #555;
+    }
+
+      .logo {
+      width: 100px;
+      margin-bottom: 20px;
+      
+    }
+
+
+  </style>
+</head>
+<body>
+  <img src="{% static 'images\WhatsApp Image 2025-05-31 at 12.18.01(1).jpeg' %}" alt="Library Logo" class="logo">
+  <img src="{{ book.cover_image.url }}" />
+    <div class="navbar">
+    <div><a href="{% url 'index' %}">Home</a></div>
+  <div class="container">
+    
+    <h2>📚 Browse Books</h2>
+    <div class="book-list">
+  {% for book in books %}
+    <div class="book">
+      <h3>{{ book.title }}</h3>
+      <p>Author: {{ book.author }}</p>
+      <p>Price: ₹{{ book.rent_price }}</p>
+      {% if book.cover_image %}
+        <img src="{{ book.cover_image.url }}" alt="{{ book.title }}" width="100">
+      {% endif %}
+    </div>
+  {% empty %}
+    <p>No books available right now.</p>
+  {% endfor %}
+</div>
+<div><a href="{% url 'index' %}">Home</a></div>
+    <div class="filter">
+      <label for="sort">Sort by:</label>
+      <select id="sort">
+        <option value="">-- Select --</option>
+        <option value="most_issued">Most Issued</option>
+        <option value="least_issued">Least Issued</option>
+        <option value="author">Author</option>
+      </select>
+    </div>
+
+    <div id="books-container">
+      <!-- Dynamic book cards will be inserted here -->
+    </div>
+  </div>
+
+  <script>
+  const sortDropdown = document.getElementById('sort');
+  const container = document.getElementById('books-container');
+
+  function loadBooks(sort = '') {
+    let url = '/api/browse-books/';
+    if (sort) url += `?sort=${sort}`;
+
+    fetch(url)
+      .then(res => res.json())
+      .then(data => {
+        container.innerHTML = '';
+        if (data.length === 0) {
+          container.innerHTML = '<div class="no-books">No books available.</div>';
+          return;
+        }
+
+        data.forEach(book => {
+          const bookDiv = document.createElement('div');
+          bookDiv.className = 'book';
+
+          const image = document.createElement('img');
+          image.src = book.cover_image || '/static/images/default_book.png';
+          image.alt = book.title;
+
+          const infoDiv = document.createElement('div');
+          infoDiv.className = 'book-info';
+          infoDiv.innerHTML = `
+            <div class="book-title">${book.title}</div>
+            <div class="book-meta">Author: ${book.author}</div>
+            <div class="book-meta">ISBN: ${book.isbn}</div>
+            <div class="book-meta">Rent Price: ₹${book.rent_price}</div>
+          `;
+
+          bookDiv.appendChild(image);
+          bookDiv.appendChild(infoDiv);
+          container.appendChild(bookDiv);
+        });
+      })
+      .catch(error => {
+        console.error('Error:', error);
+        container.innerHTML = '<div class="error">Error loading books.</div>';
+      });
+  }
+
+  // Initial load
+  loadBooks();
+
+  // Sort dropdown event
+  sortDropdown.addEventListener('change', () => {
+    loadBooks(sortDropdown.value);
+  });
+</script>
